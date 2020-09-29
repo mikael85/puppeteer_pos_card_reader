@@ -1,0 +1,13 @@
+{
+  "name": "puppeter_pos_card_reader",
+  "version": "1.0.0",
+  "description": "A Puppeteer script for bypass mobbex iframe card number, customer name and card expiration date.",
+  "main": "index.js",
+  "repository": "https://github.com/mikael85/puppeteer_pos_card_reader.git",
+  "author": "Micael Gomez",
+  "license": "AGPL-3",
+  "private": true,
+  "dependencies": {
+    "puppeteer-core": "5.2.1"
+  }
+}
