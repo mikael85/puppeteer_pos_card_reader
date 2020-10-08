@@ -11,8 +11,12 @@ const puppeteer = require('puppeteer-core');
 
 const browserURL = 'http://127.0.0.1:21222'; // you should start chrome with --remote-debugging-port=21222
 const defaultViewport = null; // Disables 800 * 600 default
+
+const WAIT_TIMEOUT = 5000;
+
 var cardSwipedData = false;
 var frmFilled = false;
+var posPage = undefined;
 
 const clickNext = async (currentPosPage) => {
   const frameHandle = await currentPosPage.$('#mbbx-container iframe:nth-child(2)');
@@ -43,12 +47,16 @@ const fillFrm = async (currentPosPage) => {
   return;
 };
 
-const main = async () => {
+const _browser_connect = async () => {
+  console.log('Waiting for Chrome...');
   const browser = await puppeteer.connect({ browserURL, defaultViewport });
   const pages = await browser.pages();
-
-  // Search for the first ocurrence of POS Tab Page
   const posPage = pages.find(page => page.url().indexOf('/pos/web/') > -1);
+  if (!posPage) {
+    console.log('No Odoo Pos in current Chrome.');
+    console.log('...retrying');
+    throw new Error('No Odoo Pos in current Chrome.');
+  }
 
   await posPage.exposeFunction('onMobbexFrmOpen', (url) => {
     console.log('onMobbexFrmOpen');
@@ -65,7 +73,45 @@ const main = async () => {
   await posPage.exposeFunction('onCardSwiped', cardData => {
     cardSwipedData = cardData;
   });
+  return posPage;
+};
 
+const _run = async () => {
+  try {
+    posPage = await _browser_connect();
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const main = async () => {
+  console.log('Script started.');
+  do {
+    setTimeout(async ()=> await _run(), WAIT_TIMEOUT);
+  } while (posPage == undefined);
+  // const browser = await puppeteer.connect({ browserURL, defaultViewport });
+  // const browser = await _browser_connect();
+  // const pages = await browser.pages();
+
+  // Search for the first ocurrence of POS Tab Page
+  // const posPage = pages.find(page => page.url().indexOf('/pos/web/') > -1);
+  // const posPage = await _pos_connect(browser);
+
+  // await posPage.exposeFunction('onMobbexFrmOpen', (url) => {
+  //   console.log('onMobbexFrmOpen');
+  //   fillFrm(posPage);
+  // });
+
+  // await posPage.exposeFunction('onMobbexFrmClose', () => {
+  //   console.log('Mobbex frm closed');
+  //   cardSwipedData = false;
+  //   frmFilled = false;
+  // });
+
+  // Expose a handler to the page
+  // await posPage.exposeFunction('onCardSwiped', cardData => {
+  //   cardSwipedData = cardData;
+  // });
 };
 
 main();
