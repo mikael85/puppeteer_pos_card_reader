@@ -20,7 +20,8 @@ const clickNext = async (currentPosPage) => {
   mbbxFrm = await frameHandle.contentFrame();
   // for some cases it works, for some others don't.
   // const mbbxFrm = await currentPosPage.mainFrame().childFrames().find(frame => frame.name().indexOf('mobbex_embed_fw') > -1); 
-  await mbbxFrm.$eval('#payment-methods-single', el => el.click());
+  // await mbbxFrm.$eval('#payment-methods-single', el => el.click());
+  await mbbxFrm.$eval('#payment-methods-multiple>div>div:nth-child(1)', el => el.click());
   // return;
 };
 
@@ -109,7 +110,15 @@ const get_coupon = async (transaction_id) => {
   raw_coupon = await raw_coupon.replace(/<meta[ a-zA-Z"-=]*\/>/g, ''); // remove <meta/> tags
   raw_coupon = await raw_coupon.replace(/<script[ a-zA-Z"-=]*\/?>[ a-zA-Z.=();{}]*<\/script>/g, ''); //remove <script/> tag and content
 
-  var html_body = await raw_coupon.match(/(<body>(<div class="col".*<\/div><\/div>)(<div class="col".*<\/div><\/div>)<\/body>)/);
+  var html_body = false;
+  while(!html_body){
+    try{
+      html_body = await raw_coupon.match(/(<body>(<div class="col".*<\/div><\/div>)(<div class="col".*<\/div><\/div>)<\/body>)/);
+    }catch(er){
+      console.error(er);
+      html_body = false;
+    }
+  }
   var signature_coupon = html_body[2];
   var qr_coupon = html_body[3];
 
