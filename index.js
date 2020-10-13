@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer-core');
+const https = require('https');
 
 // Must start Chrome with flags: 
 // --remote-debugging-port=21222 
@@ -45,6 +46,7 @@ const fillFrm = async (currentPosPage) => {
 
 const _get_raw_coupon = (id) => {
   const url = `https://ms.mobbex.com/prod/reports/v2/coupon/${id}?schema=card&format=html`;
+  console.log('getting coupon from: ', url);
   const coupon = new Promise((resolve, reject) => {
     https.get(url, (response) => {
       var body = '';
@@ -129,7 +131,7 @@ const get_coupon = async (transaction_id) => {
 
   const new_image_tag = `<img width="120" height="120" src="${base64qr}"/>`;
   qr_coupon = await qr_coupon.replace(/(<img .* src="(.*)" \/>)/g, new_image_tag);
-  
+
   const coupon1 = await raw_coupon.replace(/(<body>(<div class="col".*<\/div><\/div>)(<div class="col".*<\/div><\/div>)<\/body>)/g, `<body>${signature_coupon}</body>`)
     .replace('<div class="col"', '<div class="row"');
 
@@ -165,16 +167,14 @@ const main = async () => {
     cardSwipedData = cardData;
   });
 
-  //TODO: Save first request to avoid process two times
   await posPage.exposeFunction('printMobbexCoupon', async transaction_id => {
-    const coupon = await get_coupon(transaction_id).mobbex_coupon;
-    // Maniputate posPage to set content
-  });
-
-  await posPage.exposeFunction('printMobbexQRCoupon', async transaction_id => {
-    const coupon = await get_coupon(transaction_id).mobbex_qr_coupon;
-    // Maniputate posPage to set content
-
+    const coupon = await get_coupon(transaction_id);
+    await posPage.evaluate((coupon) => {
+      let coupon1 = document.querySelector('#coupon');
+      let coupon2 = document.querySelector('#coupon-qr');
+      coupon1.innerHTML = coupon.mobbex_coupon;
+      coupon2.innerHTML = coupon.mobbex_qr_coupon;
+    }, coupon);
   });
 
 };
