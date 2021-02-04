@@ -20,8 +20,8 @@ const clickNext = async (currentPosPage) => {
   mbbxFrm = await frameHandle.contentFrame();
   // for some cases it works, for some others don't.
   // const mbbxFrm = await currentPosPage.mainFrame().childFrames().find(frame => frame.name().indexOf('mobbex_embed_fw') > -1); 
-  // await mbbxFrm.$eval('#payment-methods-single', el => el.click());
-  await mbbxFrm.$eval('#payment-methods-multiple>div>div:nth-child(1)', el => el.click());
+  await mbbxFrm.$eval('#payment-methods-single', el => el.click());
+  // await mbbxFrm.$eval('#payment-methods-multiple>div>div:nth-child(1)', el => el.click());
   // return;
 };
 
